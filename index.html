@@ -242,88 +242,195 @@ footer{ text-align:center; padding:22px; color:var(--muted); border-top:1px soli
 </div>
 
 <main>
- <section id="announcements" aria-labelledby="announcements-heading">
-  <h2 id="announcements-heading">Announcements</h2>
+<section id="announcements" aria-labelledby="announcements-heading" style="padding:40px 4vw;">
+  <h2 id="announcements-heading" style="font-size:1.75rem;margin-bottom:18px;">Announcements</h2>
 
-  <!-- Announcements list loaded from announcements.json in repository root -->
-  <div id="ann-list" aria-live="polite" style="display:flex;flex-direction:column;gap:12px;">
-    <div style="padding:18px;background:#fff;border-radius:12px;box-shadow:0 6px 20px rgba(11,22,45,0.06);">
-      Loading announcements...
+  <div id="ann-shell" style="display:flex;flex-direction:column;gap:16px;max-width:1000px;">
+    <div id="ann-list" aria-live="polite">
+      <div class="announcement-card" style="padding:18px;border-radius:12px;box-shadow:0 6px 20px rgba(11,22,45,0.06);background:#fff;">
+        Loading announcements...
+      </div>
+    </div>
+
+    <div id="ann-actions" style="margin-top:6px; display:flex; gap:12px; align-items:center;">
+      <button id="view-all-btn" style="display:none;padding:8px 12px;border-radius:8px;border:none;background:var(--brand);color:#fff;cursor:pointer;">
+        View All Announcements
+      </button>
+      <small style="color:var(--muted);">Announcements are maintained by site admins via <code>announcements.json</code>.</small>
     </div>
   </div>
 </section>
 
 <style>
-.announcement-card{ background:#fff;border-radius:12px;padding:18px;margin:0;box-shadow:0 6px 20px rgba(11,22,45,0.06); }
-.announcement-card header{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;}
+/* Announcement card styles */
+.announcement-card {
+  display:block;
+  background:#fff;
+  border-radius:12px;
+  padding:18px;
+  margin:0;
+  box-shadow:0 6px 20px rgba(11,22,45,0.06);
+}
+.announcement-card header{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
 .announcement-card h4{ margin:0; color:var(--brand); font-size:1.05rem; }
-.announcement-card p{ margin:8px 0 0 0; color:#0b162d; }
+.announcement-card p{ margin:8px 0 0 0; color:#0b162d; line-height:1.45; }
 .announcement-actions{ margin-top:10px; display:flex; gap:8px; }
 .announcement-actions a{ padding:8px 12px;border-radius:8px;background:var(--brand);color:#fff;text-decoration:none; display:inline-block;}
+.ann-badge-new{ background:#ff6b6b;color:#fff;padding:4px 8px;border-radius:999px;font-size:0.85rem;margin-left:10px; }
+.ann-date{ color:var(--muted); font-size:0.95rem; }
+
+/* Modal */
+#ann-modal { display:none; position:fixed; inset:0; z-index:9999; align-items:center; justify-content:center; background:rgba(8,10,15,0.5); padding:24px; }
+#ann-modal .modal-inner{ background:#fff; border-radius:12px; max-width:960px; width:100%; max-height:85vh; overflow:auto; padding:20px; box-shadow:0 30px 80px rgba(0,0,0,0.4); }
+#ann-modal .modal-inner h3{ margin-top:0; }
+#ann-modal .modal-close{ position:absolute; right:20px; top:18px; background:#eee;border-radius:6px;padding:6px 8px;border:none; cursor:pointer; }
+
+/* responsive */
+@media (max-width:880px){
+  .announcement-card header{ flex-direction:column; align-items:flex-start; gap:6px; }
+  #ann-shell{ padding:0; }
+}
 </style>
 
 <script>
+/*
+ Enhanced announcements loader
+ - fetches ./announcements.json
+ - sorts by date (newest first)
+ - shows top N (default 3), shows "View All" modal for the rest
+ - marks items "New" if within NEW_DAYS
+*/
 document.addEventListener('DOMContentLoaded', function(){
-  const annList = document.getElementById('ann-list');
-  // Path to announcements JSON file in the repo root.
   const JSON_PATH = './announcements.json';
+  const TOP_N = 3;            // number of announcements shown on main page
+  const NEW_DAYS = 7;         // days to consider "New"
 
-  function render(list){
-    annList.innerHTML = '';
+  const annList = document.getElementById('ann-list');
+  const viewAllBtn = document.getElementById('view-all-btn');
+
+  function parseDate(d){
+    if(!d) return null;
+    // normalize yyyy-mm-dd or other variants
+    const t = new Date(d);
+    return isNaN(t.getTime()) ? null : t;
+  }
+
+  function isNew(dateObj){
+    if(!dateObj) return false;
+    const ms = Date.now() - dateObj.getTime();
+    return ms <= NEW_DAYS * 24 * 60 * 60 * 1000;
+  }
+
+  function renderList(list, container, limit = Infinity){
+    container.innerHTML = '';
     if(!Array.isArray(list) || list.length === 0){
-      annList.innerHTML = '<div class="announcement-card"><p>No announcements at the moment.</p></div>';
+      container.innerHTML = '<div class="announcement-card"><p>No announcements at the moment.</p></div>';
       return;
     }
-    list.forEach(item => {
-      const card = document.createElement('article');
-      card.className = 'announcement-card';
+
+    const toShow = list.slice(0, limit);
+    toShow.forEach(item => {
+      const dateObj = parseDate(item.date);
       const header = document.createElement('header');
-      const h4 = document.createElement('h4');
-      h4.textContent = item.title || '';
+
+      const title = document.createElement('h4');
+      title.textContent = item.title || '';
+
+      if(isNew(dateObj)){
+        const badge = document.createElement('span');
+        badge.className = 'ann-badge-new';
+        badge.textContent = 'New';
+        title.appendChild(badge);
+      }
+
       const time = document.createElement('time');
+      time.className = 'ann-date';
       time.dateTime = item.date || '';
       time.textContent = item.date || '';
-      header.appendChild(h4);
+
+      header.appendChild(title);
       header.appendChild(time);
+
+      const card = document.createElement('article');
+      card.className = 'announcement-card';
+      card.appendChild(header);
 
       const p = document.createElement('p');
       p.textContent = item.description || '';
-      card.appendChild(header);
       card.appendChild(p);
 
       if(item.link){
+        const actions = document.createElement('div');
+        actions.className = 'announcement-actions';
         const a = document.createElement('a');
         a.href = item.link;
         a.target = '_blank';
         a.rel = 'noopener';
         a.textContent = item.link_text || 'View';
-        const actions = document.createElement('div');
-        actions.className = 'announcement-actions';
         actions.appendChild(a);
         card.appendChild(actions);
       }
-      annList.appendChild(card);
+
+      container.appendChild(card);
     });
   }
 
-  // fetch announcements.json
+  function openModal(allList){
+    // lazy-create modal
+    let modal = document.getElementById('ann-modal');
+    if(!modal){
+      modal = document.createElement('div');
+      modal.id = 'ann-modal';
+      modal.style.display = 'flex';
+      modal.innerHTML = '<div class="modal-inner"><button class="modal-close">Close</button><h3>All Announcements</h3><div id="ann-modal-list"></div></div>';
+      document.body.appendChild(modal);
+      modal.querySelector('.modal-close').addEventListener('click', ()=> modal.style.display = 'none');
+      modal.addEventListener('click', (e)=> { if(e.target === modal) modal.style.display='none'; });
+    }
+    const modalList = modal.querySelector('#ann-modal-list');
+    renderList(allList, modalList, Infinity);
+    modal.style.display = 'flex';
+    modal.querySelector('.modal-inner').scrollTop = 0;
+  }
+
+  // fetch and render
   fetch(JSON_PATH, {cache: "no-store"})
     .then(resp => {
       if(!resp.ok) throw new Error('Network response not ok');
       return resp.json();
     })
-    .then(data => render(data))
+    .then(data => {
+      // build safe copy and sort by date descending
+      const list = (Array.isArray(data) ? data.slice() : []).map(it => {
+        return Object.assign({}, it, { __dateObj: parseDate(it.date) });
+      });
+      list.sort((a,b) => {
+        const da = a.__dateObj ? a.__dateObj.getTime() : 0;
+        const db = b.__dateObj ? b.__dateObj.getTime() : 0;
+        return db - da;
+      });
+
+      renderList(list, annList, TOP_N);
+
+      if(list.length > TOP_N){
+        viewAllBtn.style.display = 'inline-block';
+        viewAllBtn.onclick = ()=> openModal(list);
+      } else {
+        viewAllBtn.style.display = 'none';
+      }
+    })
     .catch(err => {
-      console.warn('Failed to load announcements.json, falling back to embedded default', err);
-      // fallback default (same as exam schedule)
-      render([{
+      console.warn('Failed to load announcements.json, showing fallback', err);
+      // fallback single default (exam schedule)
+      const fallback = [{
         id:'exam-schedule-1',
         title: 'End semester examination schedule published',
         date: '2025-11-26',
         description: 'The schedule for the end semester examination of Engineering Physics Lab has been published. Click on the below link to view the schedule.',
         link: 'manuals/exam_schedule.pdf',
         link_text: 'Download Exam Schedule (PDF)'
-      }]);
+      }];
+      renderList(fallback, annList, TOP_N);
     });
 });
 </script>
