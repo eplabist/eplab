@@ -219,6 +219,11 @@ footer{ text-align:center; padding:22px; color:var(--muted); border-top:1px soli
 .slides-track{ position:absolute; inset:0; display:flex; width:300%; height:100%; transition: transform 0.8s ease; will-change:transform; }
 .hero .slide{ position:relative; flex:0 0 100%; width:100%; height:100%; opacity:1; transition:none; background-size:cover; background-position:center center; }
 .hero .slide img{ display:none; }
+ .hero .slide { width: 100%; height: 100%; object-fit: cover; /* FIX: image never breaks aspect ratio */}
+
+/* Ensure slideshow container controls height */
+.hero { height: 60vh; min-height: 340px;}
+
 </style>
 
 
