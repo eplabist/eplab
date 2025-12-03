@@ -275,7 +275,16 @@ footer{ text-align:center; padding:22px; color:var(--muted); border-top:1px soli
 .announcement-card h4{ margin:0; color:var(--brand); font-size:1.05rem; }
 .announcement-card p{ margin:8px 0 0 0; color:#0b162d; line-height:1.45; }
 .announcement-actions{ margin-top:10px; display:flex; gap:8px; }
-.announcement-actions a{ padding:8px 12px;border-radius:8px;background:var(--brand);color:#fff;text-decoration:none; display:inline-block;}
+..announcement-actions a {
+    background: none;
+    padding: 0;
+    margin: 0;
+    color: #0451ff;
+    text-decoration: underline;
+    font-weight: normal;
+    display: inline;
+}
+
 .ann-badge-new{ background:#ff6b6b;color:#fff;padding:4px 8px;border-radius:999px;font-size:0.85rem;margin-left:10px; }
 .ann-date{ color:var(--muted); font-size:0.95rem; }
 
