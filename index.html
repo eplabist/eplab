@@ -206,6 +206,46 @@ footer{ text-align:center; padding:22px; color:var(--muted); border-top:1px soli
 }
 
 /* Make sure on small screens the content stacks */
+ /* ===== MOBILE HERO FIX ===== */
+@media (max-width: 768px) {
+
+  .hero {
+    height: 60vh;              /* shorter hero for phones */
+    min-height: 320px;
+  }
+
+  .slider-wrapper {
+    height: 100%;
+  }
+
+  .slider-track,
+  .slide {
+    height: 100%;
+  }
+
+  .slide img {
+    object-fit: cover;         /* keeps image proportional */
+    object-position: center;   /* center the subject */
+  }
+
+  .hero-overlay {
+    top: 12%;                  /* move text higher on mobile */
+    left: 5%;
+    right: 5%;
+    max-width: none;
+    padding: 18px;
+  }
+
+  .hero-title {
+    font-size: 24px;
+    line-height: 1.1;
+  }
+
+  .hero-sub {
+    font-size: 14px;
+  }
+}
+
 @media (max-width: 880px){
   .hero-content{ position: relative !important; top: auto; left: auto; max-width: 100% !important; padding: 4vw !important; }
   .slides-track{ position: relative !important; height: 40vh !important; }
