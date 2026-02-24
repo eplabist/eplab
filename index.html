@@ -56,12 +56,8 @@ a:hover{text-decoration:underline}
 
 /* slideshow images */
 
-.hero .slide{
- position:absolute; inset:0; width:100%; height:100%;
- background-size:cover !important; background-position:center center !important;
- opacity:0; transform: translateX(0); transition: transform 0.8s ease, opacity 0.8s ease; will-change: transform, opacity;
- z-index:1;
-}
+
+
 .hero .slide.active{
   opacity:1;
   transform: translateX(0);
@@ -135,20 +131,8 @@ footer{ text-align:center; padding:22px; color:var(--muted); border-top:1px soli
 /* For very wide or tall images, limit max height so they fit viewport nicely */
 
 
-.slides-track{ position:relative; overflow:hidden; }
-.slides-track .slide{
-  position:absolute;
-  inset:0;
-  opacity:0;
-  transform: translateX(0);
-  transition: transform 0.8s ease, opacity 0.8s ease;
-  will-change: transform, opacity;
-}
-.slides-track .slide.active{
-  opacity:1;
-  transform: translateX(0);
-  z-index:2;
-}
+/*.slides-track{ position:relative; overflow:hidden; }
+
 .slides-track .slide.enter{
   opacity:0;
   transform: translateX(100%);
@@ -166,11 +150,11 @@ footer{ text-align:center; padding:22px; color:var(--muted); border-top:1px soli
 .slides-track .slide.leave.active{
   opacity:0;
   transform: translateX(-100%);
-}
+}/*
 
 
 /* Assistant fix: force hero to be a layered container with full-bleed slideshow and overlaid content */
-.hero{
+/*.hero{
   position: relative !important;
   min-height: 52vh !important;
   max-height: 85vh;
